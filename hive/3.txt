@@ -1,0 +1,50 @@
+ADD jar /opt/cloudera/parcels/CDH/lib/hive/lib/hive-serde.jar;
+ADD jar /opt/cloudera/parcels/CDH/lib/hive/lib/hive-contrib.jar;
+
+USE mcs2017125;
+
+SELECT region,
+SUM(IF(gender="male", 1, 0)) AS male,
+SUM(IF(gender="female", 1, 0)) AS female
+FROM Logs, Users, IPRegions
+WHERE Logs.ip=Users.ip AND Logs.ip = IPRegions.ip
+GROUP BY region;
+------------------------------------------------
+
+
+WITH men AS (
+SELECT region, COUNT(*) as male 
+FROM IPRegions IPR INNER JOIN (SELECT DISTINCT ip, gender FROM Users) U ON IPR.ip = U.ip
+GROUP BY region, gender, ip
+HAVING gender="male"
+), women AS (
+SELECT region, COUNT(*) as female
+FROM IPRegions IPR INNER JOIN (SELECT DISTINCT ip, gender FROM Users) U ON IPR.ip = U.ip
+GROUP BY region, gender, ip
+HAVING gender="female"
+)
+
+SELECT men.region, male, female
+FROM men INNER JOIN women ON men.region = women.region;
+--------------------------------------------------------------------------------------
+SELECT region,
+SUM(IF(gender="male", 1, 0)) AS male,
+SUM(IF(gender="female", 1, 0)) AS female
+FROM IPRegions IPR INNER JOIN (SELECT DISTINCT ip, gender FROM Users) U ON IPR.ip = U.ip
+GROUP BY region;
+
+
+WITH men AS (
+SELECT http_stat, COUNT(*) as male 
+FROM Logs L INNER JOIN (SELECT DISTINCT ip, sex FROM Users) U ON L.ip = U.ip
+GROUP BY http_stat, sex
+HAVING sex="male"
+), women AS (
+SELECT http_stat, COUNT(*) as female
+FROM Logs L INNER JOIN (SELECT DISTINCT ip, sex FROM Users) U ON L.ip = U.ip
+GROUP BY http_stat, sex
+HAVING sex="female"
+)
+
+SELECT men.http_stat, male, female
+FROM men INNER JOIN women ON men.region = women.region

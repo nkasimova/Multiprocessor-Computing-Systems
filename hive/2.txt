@@ -1,0 +1,8 @@
+ADD jar /opt/cloudera/parcels/CDH/lib/hive/lib/hive-serde.jar;
+ADD jar /opt/cloudera/parcels/CDH/lib/hive/lib/hive-contrib.jar;
+
+USE mcs2017125;
+
+SELECT query_time, COUNT(*) as counter FROM Logs
+GROUP BY query_time
+ORDER BY counter DESC;

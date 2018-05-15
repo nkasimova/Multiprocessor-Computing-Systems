@@ -1,0 +1,9 @@
+ADD jar /opt/cloudera/parcels/CDH/lib/hive/lib/hive-serde.jar;
+ADD jar /opt/cloudera/parcels/CDH/lib/hive/lib/hive-contrib.jar;
+
+USE mcs2017125;
+
+SELECT TRANSFORM(ip, query_time, http_query, page_size, http_status, inform)
+USING "sed -r 's|.ru/|.com/|'" AS ip, query_time, http_query, page_size, http_status, inform
+FROM Logs
+LIMIT 10;

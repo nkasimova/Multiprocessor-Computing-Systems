@@ -1,0 +1,9 @@
+ADD jar /opt/cloudera/parcels/CDH/lib/hive/lib/hive-serde.jar;
+ADD jar /opt/cloudera/parcels/CDH/lib/hive/lib/hive-contrib.jar;
+
+USE mcs2017125;
+
+SELECT TRANSFORM(ip)
+USING "sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\).\([0-9]*\)/\4.\3.\2.\1/'" AS ip
+FROM Logs
+LIMIT 10;

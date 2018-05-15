@@ -1,0 +1,68 @@
+ADD jar /opt/cloudera/parcels/CDH/lib/hive/lib/hive-serde.jar;
+ADD jar /opt/cloudera/parcels/CDH/lib/hive/lib/hive-contrib.jar;
+
+USE mcs2017125;
+
+DROP TABLE IF EXISTS LogsTemp;
+
+CREATE EXTERNAL TABLE LogsTemp (
+    ip STRING,
+    query_time STRING,
+    http_query STRING,
+    page_size INT,
+    http_status INT,
+    inform STRING
+)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.RegexSerDe'
+WITH SERDEPROPERTIES (
+    "input.regex" = '^(\\S*)\\t\\t\\t(\\d{8})\\S*\\t(\\S*)\\t(\\S*)\\t(\\S*)\\t(\\S*).*$'
+)
+STORED AS TEXTFILE
+LOCATION '/data/user_logs/user_logs_M';
+
+
+SET hive.exec.dynamic.partition.mode=nonstrict;
+SET hive.exec.max.dynamic.partitions.pernode=300;
+SET hive.exec.max.dynamic.partitions=1200;
+
+DROP TABLE IF EXISTS Logs;
+
+CREATE EXTERNAL TABLE Logs (
+    ip STRING,
+    http_query STRING,
+    page_size INT,
+    http_status INT,
+    inform STRING
+)
+PARTITIONED BY (query_time STRING)
+STORED AS TEXTFILE;
+
+INSERT OVERWRITE TABLE Logs PARTITION (query_time)
+SELECT ip, http_query, page_size, http_status, inform, query_time FROM LogsTemp;
+
+
+DROP TABLE IF EXISTS IPRegions;
+
+CREATE EXTERNAL TABLE IPRegions (
+    ip STRING,
+    region STRING
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+STORED AS TEXTFILE
+LOCATION '/data/user_logs/ip_data_M';
+
+SELECT * FROM IPRegions LIMIT 10;
+
+DROP TABLE IF EXISTS Users;
+
+CREATE EXTERNAL TABLE Users (
+    ip STRING,
+    browse STRING,
+    gender STRING,
+    age INT
+)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+STORED AS TEXTFILE
+LOCATION '/data/user_logs/user_data_M';
+
+SELECT * FROM Users LIMIT 10;
